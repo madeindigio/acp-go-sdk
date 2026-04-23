@@ -1,3 +1,3 @@
-module github.com/coder/acp-go-sdk
+module github.com/madeindigio/acp-go-sdk
 
 go 1.21
