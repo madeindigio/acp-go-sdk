@@ -241,6 +241,63 @@ func WithUpdateRawOutput(v any) ToolCallUpdateOpt {
 	}
 }
 
+// UpdateUsage constructs an unstable usage_update with the current token counts.
+// used is the number of tokens currently in context, size is the total context window.
+// An optional Cost may be provided to report cumulative session cost.
+func UpdateUsage(used, size int, cost ...Cost) SessionUpdate {
+	u := &SessionUsageUpdate{Used: used, Size: size}
+	if len(cost) > 0 {
+		u.Cost = &cost[0]
+	}
+	return SessionUpdate{UsageUpdate: u}
+}
+
+// UpdateSessionTitle constructs a session_info_update that sets the human-readable
+// session title visible in client session lists.
+func UpdateSessionTitle(title string) SessionUpdate {
+	return SessionUpdate{SessionInfoUpdate: &SessionSessionInfoUpdate{Title: &title}}
+}
+
+// UpdateCurrentMode constructs a current_mode_update that reports the active
+// permission mode to the client.
+func UpdateCurrentMode(modeID SessionModeId) SessionUpdate {
+	return SessionUpdate{CurrentModeUpdate: &SessionCurrentModeUpdate{CurrentModeId: modeID}}
+}
+
+// UpdateConfigOptions constructs a config_option_update that replaces the full
+// set of configuration options visible to the client.
+func UpdateConfigOptions(opts []SessionConfigOption) SessionUpdate {
+	return SessionUpdate{ConfigOptionUpdate: &SessionConfigOptionUpdate{ConfigOptions: opts}}
+}
+
+// WithStartMeta sets the _meta field for a tool_call start update.
+func WithStartMeta(meta map[string]any) ToolCallStartOpt {
+	return func(tc *SessionUpdateToolCall) {
+		tc.Meta = meta
+	}
+}
+
+// WithUpdateMeta sets the _meta field for a tool_call_update.
+func WithUpdateMeta(meta map[string]any) ToolCallUpdateOpt {
+	return func(tu *SessionToolCallUpdate) {
+		tu.Meta = meta
+	}
+}
+
+// StartToolCallStreaming constructs a minimal tool_call update suitable for sending
+// as soon as a tool name is known but before the full input has been streamed.
+// It sets status=pending with the provided kind and an empty rawInput so clients
+// can display the tool immediately while input continues to arrive.
+func StartToolCallStreaming(id ToolCallId, title string, kind ToolKind, opts ...ToolCallStartOpt) SessionUpdate {
+	base := []ToolCallStartOpt{
+		WithStartKind(kind),
+		WithStartStatus(ToolCallStatusPending),
+		WithStartRawInput(map[string]any{}),
+	}
+	args := append(base, opts...)
+	return StartToolCall(id, title, args...)
+}
+
 // StartReadToolCall constructs a 'tool_call' update for reading a file: kind=read, status=pending, locations=[{path}], rawInput={path}.
 func StartReadToolCall(id ToolCallId, title string, path string, opts ...ToolCallStartOpt) SessionUpdate {
 	base := []ToolCallStartOpt{WithStartKind(ToolKindRead), WithStartStatus(ToolCallStatusPending), WithStartLocations([]ToolCallLocation{{Path: path}}), WithStartRawInput(map[string]any{"path": path})}
