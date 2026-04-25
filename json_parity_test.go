@@ -178,6 +178,12 @@ func TestJSONGolden_SessionUpdates(t *testing.T) {
 				PlanEntry{Content: "Identify potential type issues", Priority: PlanEntryPriorityMedium, Status: PlanEntryStatusPending},
 			)
 		},
+		func() SessionUpdate {
+			return UpdatePlan(
+				NewPlanEntry("Check for syntax errors", ParsePlanEntryStatus("pending"), ParsePlanEntryPriority("high")),
+				NewPlanEntry("Identify potential type issues", ParsePlanEntryStatus(""), ParsePlanEntryPriority("")),
+			)
+		},
 	))
 	t.Run("session_update_tool_call", runGolden(
 		func() SessionUpdate {

@@ -1,5 +1,7 @@
 package acp
 
+import "strings"
+
 // TextBlock constructs a text content block.
 func TextBlock(text string) ContentBlock {
 	return ContentBlock{Text: &ContentBlockText{
@@ -111,6 +113,39 @@ func UpdateAgentThoughtText(text string) SessionUpdate {
 // UpdatePlan constructs a plan update with the provided entries.
 func UpdatePlan(entries ...PlanEntry) SessionUpdate {
 	return SessionUpdate{Plan: &SessionUpdatePlan{Entries: entries}}
+}
+
+// NewPlanEntry constructs a PlanEntry with the given content, status, and priority.
+func NewPlanEntry(content string, status PlanEntryStatus, priority PlanEntryPriority) PlanEntry {
+	return PlanEntry{Content: content, Status: status, Priority: priority}
+}
+
+// ParsePlanEntryStatus maps a raw string to a PlanEntryStatus.
+// Recognised values are "in_progress" and "completed" (case-insensitive).
+// Any other value (including the empty string) returns PlanEntryStatusPending.
+func ParsePlanEntryStatus(s string) PlanEntryStatus {
+	switch strings.ToLower(s) {
+	case "in_progress":
+		return PlanEntryStatusInProgress
+	case "completed":
+		return PlanEntryStatusCompleted
+	default:
+		return PlanEntryStatusPending
+	}
+}
+
+// ParsePlanEntryPriority maps a raw string to a PlanEntryPriority.
+// Recognised values are "high" and "low" (case-insensitive).
+// Any other value (including the empty string) returns PlanEntryPriorityMedium.
+func ParsePlanEntryPriority(s string) PlanEntryPriority {
+	switch strings.ToLower(s) {
+	case "high":
+		return PlanEntryPriorityHigh
+	case "low":
+		return PlanEntryPriorityLow
+	default:
+		return PlanEntryPriorityMedium
+	}
 }
 
 type ToolCallStartOpt func(tc *SessionUpdateToolCall)
